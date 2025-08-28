@@ -104,8 +104,8 @@ export function KhmerEzCard() {
 
         if (!voiceResult) throw new Error("Failed to transcribe and translate voice memo.");
 
+        setInputText(voiceResult.transcription);
         setResult({
-          transcription: voiceResult.transcription,
           translation: voiceResult.translation,
         });
 
