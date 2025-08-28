@@ -108,13 +108,10 @@ export function KhmerEzCard() {
         setResult({
           translation: voiceResult.translation,
         });
-
-        // HACK: Use the translateAndSynthesizeText flow to generate speech for the already translated text.
-        // We pass the original source language, so the LLM prompt becomes "translate from [source] to [target]: [target_text]".
-        // The LLM should be smart enough to just return the text as is, which then gets synthesized.
+        
         const speechResult = await translateAndSynthesizeText({
           text: voiceResult.translation,
-          sourceLanguage,
+          sourceLanguage: targetLanguage, // The source for TTS is the *target* of the translation
         });
 
         if (speechResult?.speechDataUri) {
@@ -137,6 +134,7 @@ export function KhmerEzCard() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setIsRecording(true);
       setResult(null);
+      setInputText("");
       mediaRecorderRef.current = new MediaRecorder(stream);
       mediaRecorderRef.current.ondataavailable = (event) => {
         audioChunksRef.current.push(event.data);
