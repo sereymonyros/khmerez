@@ -217,7 +217,8 @@ export function KhmerEzCard() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+                  e.preventDefault();
                   handleTextTranslate();
                 }
               }}
@@ -230,7 +231,7 @@ export function KhmerEzCard() {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Translate (Ctrl+Enter)</p>
+                  <p>Translate (Enter)</p>
                 </TooltipContent>
               </Tooltip>
                <Tooltip>
