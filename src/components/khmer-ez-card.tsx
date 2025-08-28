@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useTransition } from "react";
-import { ArrowRight, Languages, Mic, Send, SpeakerLoud, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Languages, Mic, Send, Speaker } from "lucide-react";
 import { transcribeAndTranslateVoiceMemo } from "@/ai/flows/transcribe-and-translate-voice-memo";
 import { translateAndSynthesizeText } from "@/ai/flows/translate-and-synthesize-text";
 import { useToast } from "@/hooks/use-toast";
@@ -292,7 +292,7 @@ export function KhmerEzCard() {
                               aria-label="Play translated text"
                               className={cn(isSpeaking && "text-primary")}
                             >
-                              <SpeakerLoud className="w-5 h-5" />
+                              <Speaker className="w-5 h-5" />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent><p>Listen to Translation</p></TooltipContent>
