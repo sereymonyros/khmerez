@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useTransition } from "react";
-import { Languages, Mic, Send, Speaker } from "lucide-react";
+import { Languages, Mic, Send, Volume2 } from "lucide-react";
 import { transcribeAndTranslateVoiceMemo } from "@/ai/flows/transcribe-and-translate-voice-memo";
 import { translateAndSynthesizeText } from "@/ai/flows/translate-and-synthesize-text";
 import { useToast } from "@/hooks/use-toast";
@@ -252,7 +252,7 @@ export function KhmerEzCard() {
                   onTouchEnd={stopRecording}
                   disabled={isPending}
                   className={cn(
-                    'w-14',
+                    'flex-1',
                     isRecording &&
                       'animate-pulse ring-2 ring-destructive ring-offset-2 ring-offset-background'
                   )}
@@ -308,7 +308,7 @@ export function KhmerEzCard() {
                               className={cn(isSpeaking && "text-primary")}
                               id="speakingButton"
                             >
-                              <Speaker className="w-5 h-5" />
+                              <Volume2 className="w-5 h-5" />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent><p>Listen to Translation</p></TooltipContent>
@@ -324,3 +324,5 @@ export function KhmerEzCard() {
     </TooltipProvider>
   );
 }
+
+    
