@@ -100,23 +100,25 @@ export function KhmerEzCard() {
   const handleTextTranslate = () => {
     if (!inputText.trim()) return;
     setResult({ type: 'loading' });
-    processStream(
-      translateAndSynthesizeText,
-      { text: inputText, sourceLanguage },
-      (output) => {
-        if (output.translatedText) {
-          setResult({
-            type: 'success',
-            data: {
-              translation: output.translatedText,
-              speechDataUri: output.speechDataUri,
-            },
-          });
-        } else {
-            setResult({ type: 'error', message: 'No result found.' });
+    startTransition(() => {
+      processStream(
+        translateAndSynthesizeText,
+        { text: inputText, sourceLanguage },
+        (output) => {
+          if (output.translatedText) {
+            setResult({
+              type: 'success',
+              data: {
+                translation: output.translatedText,
+                speechDataUri: output.speechDataUri,
+              },
+            });
+          } else {
+              setResult({ type: 'error', message: 'No result found.' });
+          }
         }
-      }
-    );
+      );
+    });
   };
 
   const handleVoiceTranslate = (voiceMemoDataUri: string) => {
@@ -165,7 +167,7 @@ export function KhmerEzCard() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setIsRecording(true);
       setInputText("");
-      setResult({ type: null });
+      setResult({ type: 'loading' });
       mediaRecorderRef.current = new MediaRecorder(stream);
       mediaRecorderRef.current.ondataavailable = (event) => {
         audioChunksRef.current.push(event.data);
@@ -206,7 +208,6 @@ export function KhmerEzCard() {
                 <div className="space-y-2">
                     <Skeleton className="h-5 w-1/3" />
                     <Skeleton className="h-5 w-full" />
-                    <Skeleton className="h-5 w-2/3" />
                 </div>
               </Alert>
           )}
