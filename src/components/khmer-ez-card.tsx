@@ -103,27 +103,32 @@ export function KhmerEzCard() {
           sourceLanguage,
           targetLanguage,
         });
-
+  
         if (!voiceResult) throw new Error("Failed to transcribe and translate voice memo.");
-
+  
         setInputText(voiceResult.transcription);
+        setResult({
+          transcription: voiceResult.transcription,
+          translation: voiceResult.translation,
+          speechDataUri: ''
+        });
         
         let speechResult;
         try {
+          // Pass the already-translated text to be synthesized
           speechResult = await translateAndSynthesizeText({
-            sourceLanguage: targetLanguage, // Language of the translated text
+            sourceLanguage: targetLanguage, // The language of the translated text for synthesis
             translatedText: voiceResult.translation,
+          });
+          setResult({
+            transcription: voiceResult.transcription,
+            translation: voiceResult.translation,
+            speechDataUri: speechResult?.speechDataUri,
           });
         } catch (e) {
             console.error("Speech synthesis failed, but translation succeeded:", e);
         }
-
-        setResult({
-          transcription: voiceResult.transcription,
-          translation: voiceResult.translation,
-          speechDataUri: speechResult?.speechDataUri,
-        });
-
+  
       } catch (e) {
         console.error(e);
         toast({
@@ -324,5 +329,3 @@ export function KhmerEzCard() {
     </TooltipProvider>
   );
 }
-
-    
