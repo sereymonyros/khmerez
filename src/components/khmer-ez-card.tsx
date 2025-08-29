@@ -72,13 +72,6 @@ export function KhmerEzCard() {
     audio.play();
   };
   
-  useEffect(() => {
-    if (result.type === 'success' && result.data?.speechDataUri) {
-      handlePlayAudio(result.data.speechDataUri);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result]);
-
   const handleLanguageToggle = () => {
     setLanguagePair(prev => (prev === "en-km" ? "km-en" : "en-km"));
     setInputText("");
@@ -131,7 +124,7 @@ export function KhmerEzCard() {
         setInputText(voiceResult.transcription);
         
         const speechResult = await translateAndSynthesizeText({
-          sourceLanguage: targetLanguage,
+          sourceLanguage: targetLanguage, 
           translatedText: voiceResult.translation,
         });
 
