@@ -45,7 +45,9 @@ export function KhmerEzCard() {
   useEffect(() => {
     return () => {
       audioPlayerRef.current?.pause();
-      mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop());
+      if (mediaRecorderRef.current && mediaRecorderRef.current.stream) {
+        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      }
     };
   }, []);
 
@@ -130,6 +132,7 @@ export function KhmerEzCard() {
   };
 
   const startRecording = async () => {
+    if (isRecording) return;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setIsRecording(true);
@@ -162,6 +165,7 @@ export function KhmerEzCard() {
   };
 
   const stopRecording = () => {
+    if (!isRecording) return;
     mediaRecorderRef.current?.stop();
     setIsRecording(false);
   };
@@ -237,7 +241,10 @@ export function KhmerEzCard() {
                   <Button
                     size="icon"
                     variant={isRecording ? "destructive" : "outline"}
-                    onClick={isRecording ? stopRecording : startRecording}
+                    onMouseDown={startRecording}
+                    onMouseUp={stopRecording}
+                    onTouchStart={startRecording}
+                    onTouchEnd={stopRecording}
                     disabled={isPending}
                     className={cn(isRecording && "animate-pulse ring-2 ring-destructive ring-offset-2 ring-offset-background")}
                   >
@@ -245,7 +252,7 @@ export function KhmerEzCard() {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{isRecording ? "Stop Recording" : "Record Voice"}</p>
+                  <p>{isRecording ? "Release to Stop" : "Press and Hold to Record"}</p>
                 </TooltipContent>
               </Tooltip>
             </div>
