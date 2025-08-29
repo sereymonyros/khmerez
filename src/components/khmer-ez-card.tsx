@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, useTransition } from "react";
@@ -79,31 +78,14 @@ export function KhmerEzCard() {
     audio.play();
   };
 
-  const processStream = (
-    action: (input: any) => Promise<any>,
-    input: any,
-    onSuccess: (output: any) => void
-  ) => {
-    startTransition(async () => {
-      try {
-        const output = await action(input);
-        if (!output) throw new Error("Received an empty response from the AI.");
-        onSuccess(output);
-      } catch (e) {
-        console.error(e);
-        const message = e instanceof Error ? e.message : "Please try again.";
-        setResult({ type: 'error', message });
-      }
-    });
-  };
-
   const handleTextTranslate = () => {
     if (!inputText.trim()) return;
     setResult({ type: 'loading' });
-    processStream(
-      translateAndSynthesizeText,
-      { text: inputText, sourceLanguage },
-      (output) => {
+    startTransition(async () => {
+      try {
+        const output = await translateAndSynthesizeText(
+            { text: inputText, sourceLanguage }
+        );
         if (output.translatedText) {
           setResult({
             type: 'success',
@@ -115,8 +97,12 @@ export function KhmerEzCard() {
         } else {
             setResult({ type: 'error', message: 'No result found.' });
         }
+      } catch (e) {
+        console.error(e);
+        const message = e instanceof Error ? e.message : "Please try again.";
+        setResult({ type: 'error', message });
       }
-    );
+    });
   };
 
   const handleVoiceTranslate = (voiceMemoDataUri: string) => {
@@ -193,7 +179,6 @@ export function KhmerEzCard() {
 
   const stopRecording = () => {
     if (!isRecording) return;
-    setResult({ type: 'loading' });
     mediaRecorderRef.current?.stop();
     setIsRecording(false);
   };
