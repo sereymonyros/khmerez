@@ -76,6 +76,15 @@ const translateAndSynthesizeTextFlow = ai.defineFlow(
   },
   async input => {
     const targetLanguage = input.sourceLanguage === 'en' ? 'km' : 'en';
+
+    if (!input.text.trim()) {
+      return {
+        translatedText: '',
+        speechDataUri: '',
+        targetLanguage: targetLanguage,
+      };
+    }
+
     const {output} = await translateAndSynthesizeTextPrompt({
       ...input,
       targetLanguage,
@@ -87,10 +96,18 @@ const translateAndSynthesizeTextFlow = ai.defineFlow(
     if (translatedText) {
       const {media} = await ai.generate({
         model: 'googleai/gemini-2.5-flash-preview-tts',
+        config: {
+          responseModalities: ['AUDIO'],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {voiceName: 'Algenib'},
+            },
+          },
+        },
         prompt: translatedText,
       });
 
-      if (media) {
+      if (media?.url) {
         const audioBuffer = Buffer.from(
           media.url.substring(media.url.indexOf(',') + 1),
           'base64'
