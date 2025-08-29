@@ -124,7 +124,7 @@ export function KhmerEzCard() {
         setInputText(voiceResult.transcription);
         
         const speechResult = await translateAndSynthesizeText({
-          sourceLanguage: sourceLanguage, // This was the bug, it should be the original source language
+          sourceLanguage: targetLanguage, // This was the bug, it should be the target language
           translatedText: voiceResult.translation,
         });
 
