@@ -111,13 +111,18 @@ export function KhmerEzCard() {
           translation: voiceResult.translation,
         });
         
+        // Directly synthesize the translated text.
+        // The source language for TTS is the *target* of the initial translation.
         const speechResult = await translateAndSynthesizeText({
           text: voiceResult.translation,
-          sourceLanguage: targetLanguage, // The source for TTS is the *target* of the translation
+          sourceLanguage: targetLanguage,
         });
 
         if (speechResult?.speechDataUri) {
-          setResult(prev => prev ? { ...prev, speechDataUri: speechResult.speechDataUri } : null);
+          setResult(prev => prev ? { ...prev, speechDataUri: speechResult.speechDataUri } : {
+            translation: voiceResult.translation,
+            speechDataUri: speechResult.speechDataUri,
+          });
         }
       } catch (e) {
         console.error(e);
@@ -247,6 +252,7 @@ export function KhmerEzCard() {
                     onTouchEnd={stopRecording}
                     disabled={isPending}
                     className={cn(isRecording && "animate-pulse ring-2 ring-destructive ring-offset-2 ring-offset-background")}
+                    id="recordingButton"
                   >
                     <Mic className="w-5 h-5" />
                   </Button>
@@ -272,6 +278,8 @@ export function KhmerEzCard() {
             </div>
           )}
           
+
+          {/* translation result */}
           {result && !isPending && (
             <Card className="bg-accent/10 border-accent/50">
               <CardContent className="p-4 space-y-4">
@@ -297,6 +305,7 @@ export function KhmerEzCard() {
                               disabled={!result.speechDataUri || isSpeaking}
                               aria-label="Play translated text"
                               className={cn(isSpeaking && "text-primary")}
+                              id="speakingButton"
                             >
                               <Speaker className="w-5 h-5" />
                             </Button>
@@ -309,9 +318,10 @@ export function KhmerEzCard() {
               </CardContent>
             </Card>
           )}
-
         </CardContent>
-      </Card>
+      </Card>      
     </TooltipProvider>
   );
 }
+
+    
