@@ -52,13 +52,7 @@ export function KhmerEzCard() {
       }
     };
   }, []);
-  
-  const handleLanguageToggle = () => {
-    setLanguagePair(prev => (prev === "en-km" ? "km-en" : "en-km"));
-    setInputText("");
-    setResult({ type: null });
-  };
-  
+
   const handlePlayAudio = (speechDataUri: string) => {
     if (!speechDataUri || isSpeaking) return;
   
@@ -76,6 +70,19 @@ export function KhmerEzCard() {
     };
   
     audio.play();
+  };
+  
+  useEffect(() => {
+    if (result.type === 'success' && result.data?.speechDataUri) {
+      handlePlayAudio(result.data.speechDataUri);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result]);
+
+  const handleLanguageToggle = () => {
+    setLanguagePair(prev => (prev === "en-km" ? "km-en" : "en-km"));
+    setInputText("");
+    setResult({ type: null });
   };
 
   const handleTextTranslate = () => {
@@ -124,7 +131,7 @@ export function KhmerEzCard() {
         setInputText(voiceResult.transcription);
         
         const speechResult = await translateAndSynthesizeText({
-          sourceLanguage: targetLanguage, // This was the bug, it should be the target language
+          sourceLanguage: targetLanguage,
           translatedText: voiceResult.translation,
         });
 
