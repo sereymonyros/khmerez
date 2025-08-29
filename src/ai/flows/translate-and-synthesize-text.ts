@@ -81,7 +81,7 @@ const translateAndSynthesizeTextFlow = ai.defineFlow(
 
     let translatedText = input.translatedText || '';
 
-    if (!translatedText && input.text.trim()) {
+    if (!input.translatedText && input.text.trim()) {
        const {output} = await translateAndSynthesizeTextPrompt({
         text: input.text,
         sourceLanguage: input.sourceLanguage,
