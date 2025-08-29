@@ -108,20 +108,12 @@ export function KhmerEzCard() {
   
         setInputText(voiceResult.transcription);
         
-        // Immediately set the state with the transcription and translation
-        setResult({
-            transcription: voiceResult.transcription,
-            translation: voiceResult.translation,
-        });
-        
-        // Now, get the speech synthesis
         try {
           const speechResult = await translateAndSynthesizeText({
-            sourceLanguage: targetLanguage, // The language of the translated text for synthesis
+            sourceLanguage: targetLanguage,
             translatedText: voiceResult.translation,
           });
 
-          // Update the result in state with the new speech URI
           setResult({
             transcription: voiceResult.transcription,
             translation: voiceResult.translation,
@@ -130,7 +122,6 @@ export function KhmerEzCard() {
 
         } catch (e) {
             console.error("Speech synthesis failed, but translation succeeded:", e);
-            // Even if speech synthesis fails, we have the translation
             setResult({
               transcription: voiceResult.transcription,
               translation: voiceResult.translation,
@@ -188,7 +179,8 @@ export function KhmerEzCard() {
     setIsRecording(false);
   };
 
-  const handlePlayAudio = () => {
+  const handlePlayAudio = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent tooltip from closing
     if (!result?.speechDataUri || isSpeaking) return;
 
     if (audioPlayerRef.current) {
@@ -246,14 +238,40 @@ export function KhmerEzCard() {
             />
           </div>
           <div className="flex gap-2">
-            <Button
-              className="flex-1"
-              onClick={handleTextTranslate}
-              disabled={!inputText.trim() || isPending}
-            >
-              <Globe className="w-5 h-5 mr-2" />
-              Translate
-            </Button>
+             <Tooltip open={!!(result && !isPending)}>
+              <TooltipTrigger asChild>
+                <Button
+                  className="flex-1"
+                  onClick={handleTextTranslate}
+                  disabled={!inputText.trim() || isPending}
+                >
+                  <Globe className="w-5 h-5 mr-2" />
+                  Translate
+                </Button>
+              </TooltipTrigger>
+              {result && !isPending && (
+                <TooltipContent side="bottom" className="w-full max-w-xs sm:max-w-sm md:max-w-md p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="text-base font-semibold text-foreground flex-1 pt-1 break-words">
+                      {result.translation}
+                    </p>
+                    <div className="flex items-center gap-2">
+                       <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={handlePlayAudio}
+                          disabled={!result.speechDataUri || isSpeaking}
+                          aria-label="Play translated text"
+                          className={cn("shrink-0", isSpeaking && "text-primary")}
+                          id="speakingButton"
+                        >
+                          <Volume2 className="w-5 h-5" />
+                        </Button>
+                    </div>
+                  </div>
+                </TooltipContent>
+              )}
+            </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -271,6 +289,7 @@ export function KhmerEzCard() {
                   id="recordingButton"
                 >
                   <Mic className="w-5 h-5" />
+                  Record
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -296,43 +315,10 @@ export function KhmerEzCard() {
               </div>
             </div>
           )}
-          
-
-          {/* translation result */}
-          {result && !isPending && (
-            <Card className="bg-accent/10 border-accent/50">
-              <CardContent className="p-4 space-y-4">
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-1">Translation</h3>
-                  <div className="flex items-start justify-between gap-4">
-                    <p className="text-lg font-semibold text-foreground flex-1 pt-1" id="translatedText">
-                      {result.translation}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                           <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={handlePlayAudio}
-                              disabled={!result.speechDataUri || isSpeaking}
-                              aria-label="Play translated text"
-                              className={cn(isSpeaking && "text-primary")}
-                              id="speakingButton"
-                            >
-                              <Volume2 className="w-5 h-5" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent><p>Listen to Translation</p></TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </CardContent>
       </Card>      
     </TooltipProvider>
   );
 }
+
+    
