@@ -106,16 +106,18 @@ export function KhmerEzCard() {
 
         if (!voiceResult) throw new Error("Failed to transcribe and translate voice memo.");
 
-        // setInputText(voiceResult.transcription);
+        setInputText(voiceResult.transcription);
         
         const speechResult = await translateAndSynthesizeText({
-          text: voiceResult.translation,
+          text: '', // Not needed as we provide translatedText
           sourceLanguage: targetLanguage, 
+          translatedText: voiceResult.translation,
         });
 
         if (!speechResult) throw new Error("Failed to synthesize speech for the translation.");
 
         setResult({
+          transcription: voiceResult.transcription,
           translation: voiceResult.translation,
           speechDataUri: speechResult.speechDataUri,
         });

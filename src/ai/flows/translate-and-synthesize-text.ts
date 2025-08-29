@@ -15,6 +15,7 @@ import wav from 'wav';
 const TranslateAndSynthesizeTextInputSchema = z.object({
   text: z.string().describe('The text to translate and synthesize.'),
   sourceLanguage: z.enum(['en', 'km']).describe('The source language of the text.'),
+  translatedText: z.string().optional().describe('An optional pre-translated text to synthesize directly.'),
 });
 export type TranslateAndSynthesizeTextInput = z.infer<typeof TranslateAndSynthesizeTextInputSchema>;
 
@@ -78,20 +79,23 @@ const translateAndSynthesizeTextFlow = ai.defineFlow(
   async input => {
     const targetLanguage = input.sourceLanguage === 'en' ? 'km' : 'en';
 
-    if (!input.text.trim()) {
-      return {
-        translatedText: '',
-        speechDataUri: '',
-        targetLanguage: targetLanguage,
-      };
+    let translatedText = input.translatedText || '';
+
+    if (!translatedText && input.text.trim()) {
+       const {output} = await translateAndSynthesizeTextPrompt({
+        text: input.text,
+        sourceLanguage: input.sourceLanguage,
+        targetLanguage,
+      });
+      translatedText = output?.translatedText || '';
+    } else if (!translatedText && !input.text.trim()) {
+        return {
+            translatedText: '',
+            speechDataUri: '',
+            targetLanguage: targetLanguage,
+        };
     }
-
-    const {output} = await translateAndSynthesizeTextPrompt({
-      ...input,
-      targetLanguage,
-    });
-
-    const translatedText = output?.translatedText || '';
+    
     let speechDataUri = '';
 
     if (translatedText) {
