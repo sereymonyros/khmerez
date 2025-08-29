@@ -198,7 +198,44 @@ export function KhmerEzCard() {
   };
 
   return (
-    <TooltipProvider>      
+    <TooltipProvider>
+      {result.type && (
+        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 z-50">
+          {result.type === 'loading' && (
+              <Alert>
+                <div className="space-y-2">
+                    <Skeleton className="h-5 w-1/3" />
+                    <Skeleton className="h-5 w-full" />
+                    <Skeleton className="h-5 w-2/3" />
+                </div>
+              </Alert>
+          )}
+          {result.type === 'error' && (
+              <Alert variant="destructive">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{result.message}</AlertDescription>
+              </Alert>
+          )}
+          {result.type === 'success' && result.data && (
+              <Alert variant="success" className="flex items-center justify-between">
+                  <AlertDescription className="text-base text-current">
+                    {result.data.translation}
+                  </AlertDescription>
+                  {result.data.speechDataUri && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handlePlayAudio(result.data.speechDataUri!)}
+                      disabled={isSpeaking}
+                      aria-label="Play translated text"
+                    >
+                      <Volume2 className={cn("w-5 h-5", isSpeaking && "text-primary")} />
+                    </Button>
+                  )}
+              </Alert>
+          )}
+        </div>
+      )}
       <Card className="w-full max-w-2xl mt-8 shadow-2xl shadow-primary/10">
         <CardHeader className="text-center">
           <CardTitle className="relative flex items-center justify-center gap-4 text-2xl font-headline">
@@ -275,41 +312,6 @@ export function KhmerEzCard() {
               </TooltipContent>
             </Tooltip>
           </div>
-          {result.type && (
-            <div className="pt-4">
-              {result.type === 'loading' && (
-                  <div className="space-y-2">
-                      <Skeleton className="h-5 w-1/3" />
-                      <Skeleton className="h-5 w-full" />
-                      <Skeleton className="h-5 w-2/3" />
-                  </div>
-              )}
-              {result.type === 'error' && (
-                  <Alert variant="destructive">
-                      <AlertTitle>Error</AlertTitle>
-                      <AlertDescription>{result.message}</AlertDescription>
-                  </Alert>
-              )}
-              {result.type === 'success' && result.data && (
-                  <Alert variant="success" className="flex items-center justify-between">
-                      <AlertDescription className="text-base text-current">
-                        {result.data.translation}
-                      </AlertDescription>
-                      {result.data.speechDataUri && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handlePlayAudio(result.data.speechDataUri!)}
-                          disabled={isSpeaking}
-                          aria-label="Play translated text"
-                        >
-                          <Volume2 className={cn("w-5 h-5", isSpeaking && "text-primary")} />
-                        </Button>
-                      )}
-                  </Alert>
-              )}
-            </div>
-          )}
         </CardContent>
       </Card>      
     </TooltipProvider>
