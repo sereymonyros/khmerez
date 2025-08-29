@@ -260,7 +260,7 @@ export function KhmerEzCard() {
           <div className="relative">
             <Textarea
               id="originalText"
-              placeholder={`Type in ${langNames[sourceLanguage]}...`}
+              placeholder="Type in English or Cambodian..."
               className="min-h-[120px] text-base focus-visible:ring-primary/80"
               value={inputText}
               onChange={(e) => {
