@@ -76,9 +76,9 @@ export function KhmerEzCard() {
     audio.play();
   };
 
-  const showTranslationToast = (result: TranslationResult) => {
+  const showTranslationToast = (result: TranslationResult, variant: 'success' | 'destructive' = 'success') => {
     const { update } = toast({
-      variant: "success",
+      variant,
       duration: Infinity,
       description: (
         <div className="flex items-center gap-4">
@@ -146,11 +146,15 @@ export function KhmerEzCard() {
       translateAndSynthesizeText,
       { text: inputText, sourceLanguage },
       (output) => {
-        const newResult = {
+        if (output.translatedText) {
+          const newResult = {
             translation: output.translatedText,
             speechDataUri: output.speechDataUri,
-        };
-        showTranslationToast(newResult);
+          };
+          showTranslationToast(newResult, 'success');
+        } else {
+          showTranslationToast({ translation: 'No result found.' }, 'destructive');
+        }
       }
     );
   };
@@ -166,7 +170,10 @@ export function KhmerEzCard() {
           targetLanguage,
         });
   
-        if (!voiceResult) throw new Error("Failed to transcribe and translate voice memo.");
+        if (!voiceResult || !voiceResult.translation) {
+            showTranslationToast({ translation: 'No result found.' }, 'destructive');
+            return;
+        }
   
         setInputText(voiceResult.transcription);
         
@@ -181,7 +188,7 @@ export function KhmerEzCard() {
           speechDataUri: speechResult?.speechDataUri,
         };
         
-        showTranslationToast(newResult);
+        showTranslationToast(newResult, 'success');
   
       } catch (e) {
         if (activeToastId.current) dismiss(activeToastId.current);
