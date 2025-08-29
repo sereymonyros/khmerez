@@ -85,7 +85,6 @@ export function KhmerEzCard() {
     onSuccess: (output: any) => void
   ) => {
     startTransition(async () => {
-        setResult({ type: 'loading' });
       try {
         const output = await action(input);
         if (!output) throw new Error("Received an empty response from the AI.");
@@ -100,6 +99,7 @@ export function KhmerEzCard() {
 
   const handleTextTranslate = () => {
     if (!inputText.trim()) return;
+    setResult({ type: 'loading' });
     processStream(
       translateAndSynthesizeText,
       { text: inputText, sourceLanguage },
@@ -121,8 +121,8 @@ export function KhmerEzCard() {
 
   const handleVoiceTranslate = (voiceMemoDataUri: string) => {
     setInputText("");
+    setResult({ type: 'loading' });
     startTransition(async () => {
-      setResult({ type: 'loading' });
       try {
         const voiceResult = await transcribeAndTranslateVoiceMemo({
           voiceMemoDataUri,
