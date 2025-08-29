@@ -94,25 +94,22 @@ const translateAndSynthesizeTextFlow = ai.defineFlow(
     let speechDataUri = '';
 
     if (translatedText) {
-      const {media} = await ai.generate({
-        model: 'googleai/gemini-2.5-flash-preview-tts',
-        config: {
-          responseModalities: ['AUDIO'],
-          speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: {voiceName: 'Algenib'},
-            },
-          },
-        },
-        prompt: translatedText,
-      });
+      try {
+        const {media} = await ai.generate({
+          model: 'googleai/tts-1-hd',
+          prompt: translatedText,
+        });
 
-      if (media?.url) {
-        const audioBuffer = Buffer.from(
-          media.url.substring(media.url.indexOf(',') + 1),
-          'base64'
-        );
-        speechDataUri = 'data:audio/wav;base64,' + (await toWav(audioBuffer));
+        if (media?.url) {
+          const audioBuffer = Buffer.from(
+            media.url.substring(media.url.indexOf(',') + 1),
+            'base64'
+          );
+          speechDataUri = 'data:audio/wav;base64,' + (await toWav(audioBuffer));
+        }
+      } catch (e) {
+        console.error('Text-to-speech generation failed:', e);
+        // Do not re-throw, just leave speechDataUri empty so the app doesn't crash.
       }
     }
 
