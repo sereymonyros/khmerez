@@ -100,25 +100,23 @@ export function KhmerEzCard() {
   const handleTextTranslate = () => {
     if (!inputText.trim()) return;
     setResult({ type: 'loading' });
-    startTransition(() => {
-      processStream(
-        translateAndSynthesizeText,
-        { text: inputText, sourceLanguage },
-        (output) => {
-          if (output.translatedText) {
-            setResult({
-              type: 'success',
-              data: {
-                translation: output.translatedText,
-                speechDataUri: output.speechDataUri,
-              },
-            });
-          } else {
-              setResult({ type: 'error', message: 'No result found.' });
-          }
+    processStream(
+      translateAndSynthesizeText,
+      { text: inputText, sourceLanguage },
+      (output) => {
+        if (output.translatedText) {
+          setResult({
+            type: 'success',
+            data: {
+              translation: output.translatedText,
+              speechDataUri: output.speechDataUri,
+            },
+          });
+        } else {
+            setResult({ type: 'error', message: 'No result found.' });
         }
-      );
-    });
+      }
+    );
   };
 
   const handleVoiceTranslate = (voiceMemoDataUri: string) => {
@@ -167,7 +165,7 @@ export function KhmerEzCard() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setIsRecording(true);
       setInputText("");
-      setResult({ type: 'loading' });
+      setResult({ type: null });
       mediaRecorderRef.current = new MediaRecorder(stream);
       mediaRecorderRef.current.ondataavailable = (event) => {
         audioChunksRef.current.push(event.data);
@@ -195,6 +193,7 @@ export function KhmerEzCard() {
 
   const stopRecording = () => {
     if (!isRecording) return;
+    setResult({ type: 'loading' });
     mediaRecorderRef.current?.stop();
     setIsRecording(false);
   };
