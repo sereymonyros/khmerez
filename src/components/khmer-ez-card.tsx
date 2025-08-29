@@ -107,12 +107,18 @@ export function KhmerEzCard() {
         if (!voiceResult) throw new Error("Failed to transcribe and translate voice memo.");
   
         setInputText(voiceResult.transcription);
-        setResult({
+        
+        // Use a temporary variable to hold the full result initially
+        let fullResult: TranslationResult = {
           transcription: voiceResult.transcription,
           translation: voiceResult.translation,
           speechDataUri: ''
-        });
+        };
+  
+        // Immediately set the state with the transcription and translation
+        setResult(fullResult);
         
+        // Now, try to get the speech synthesis
         let speechResult;
         try {
           // Pass the already-translated text to be synthesized
@@ -120,11 +126,13 @@ export function KhmerEzCard() {
             sourceLanguage: targetLanguage, // The language of the translated text for synthesis
             translatedText: voiceResult.translation,
           });
+
+          // Update the result in state with the new speech URI
           setResult({
-            transcription: voiceResult.transcription,
-            translation: voiceResult.translation,
+            ...fullResult,
             speechDataUri: speechResult?.speechDataUri,
           });
+
         } catch (e) {
             console.error("Speech synthesis failed, but translation succeeded:", e);
         }

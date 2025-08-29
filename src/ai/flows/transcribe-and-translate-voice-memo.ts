@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { gemini15Pro } from '@genkit-ai/googleai';
 
 const TranscribeAndTranslateVoiceMemoInputSchema = z.object({
   voiceMemoDataUri: z
@@ -38,16 +39,34 @@ export async function transcribeAndTranslateVoiceMemo(
   return transcribeAndTranslateVoiceMemoFlow(input);
 }
 
-const transcribeAndTranslatePrompt = ai.definePrompt({
-  name: 'transcribeAndTranslatePrompt',
-  input: {schema: TranscribeAndTranslateVoiceMemoInputSchema},
-  output: {schema: TranscribeAndTranslateVoiceMemoOutputSchema},
-  prompt: `You are a translator. A user will provide a voice memo, its source language and the target language. You will transcribe the voice memo and translate it to the target language.
+const transcriptionPrompt = ai.definePrompt({
+  name: 'transcriptionPrompt',
+  input: {schema: z.object({
+    voiceMemoDataUri: TranscribeAndTranslateVoiceMemoInputSchema.shape.voiceMemoDataUri,
+    sourceLanguage: TranscribeAndTranslateVoiceMemoInputSchema.shape.sourceLanguage,
+  })},
+  output: {schema: z.object({transcription: TranscribeAndTranslateVoiceMemoOutputSchema.shape.transcription})},
+  prompt: `You are a transcription expert. A user will provide a voice memo and its source language. You will transcribe the voice memo.
 
 Voice Memo: {{media url=voiceMemoDataUri}}
-Source Language: {{sourceLanguage}}
-Target Language: {{targetLanguage}}`,
+Source Language: {{sourceLanguage}}`,
+  model: gemini15Pro,
 });
+
+const translationPrompt = ai.definePrompt({
+    name: 'translationPrompt',
+    input: {schema: z.object({
+        textToTranslate: z.string(),
+        targetLanguage: TranscribeAndTranslateVoiceMemoInputSchema.shape.targetLanguage,
+    })},
+    output: {schema: z.object({translation: TranscribeAndTranslateVoiceMemoOutputSchema.shape.translation})},
+    prompt: `You are a translator. A user will provide text and a target language. You will translate the text to the target language.
+
+Text to Translate: {{textToTranslate}}
+Target Language: {{targetLanguage}}`,
+    model: gemini15Pro,
+});
+
 
 const transcribeAndTranslateVoiceMemoFlow = ai.defineFlow(
   {
@@ -56,7 +75,29 @@ const transcribeAndTranslateVoiceMemoFlow = ai.defineFlow(
     outputSchema: TranscribeAndTranslateVoiceMemoOutputSchema,
   },
   async input => {
-    const {output} = await transcribeAndTranslatePrompt(input);
-    return output!;
+    // Step 1: Transcribe
+    const transcriptionResponse = await transcriptionPrompt({
+        voiceMemoDataUri: input.voiceMemoDataUri,
+        sourceLanguage: input.sourceLanguage,
+    });
+    const transcription = transcriptionResponse.output?.transcription;
+    if (!transcription) {
+        throw new Error('Failed to transcribe audio.');
+    }
+
+    // Step 2: Translate
+    const translationResponse = await translationPrompt({
+        textToTranslate: transcription,
+        targetLanguage: input.targetLanguage,
+    });
+    const translation = translationResponse.output?.translation;
+    if (!translation) {
+        throw new Error('Failed to translate text.');
+    }
+
+    return {
+      transcription,
+      translation,
+    };
   }
 );
