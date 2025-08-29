@@ -107,23 +107,18 @@ export function KhmerEzCard() {
         if (!voiceResult) throw new Error("Failed to transcribe and translate voice memo.");
 
         setInputText(voiceResult.transcription);
-        setResult({
-          translation: voiceResult.translation,
-        });
         
-        // Directly synthesize the translated text.
         // The source language for TTS is the *target* of the initial translation.
         const speechResult = await translateAndSynthesizeText({
           text: voiceResult.translation,
-          sourceLanguage: targetLanguage,
+          sourceLanguage: targetLanguage, 
         });
 
-        if (speechResult?.speechDataUri) {
-          setResult(prev => prev ? { ...prev, speechDataUri: speechResult.speechDataUri } : {
-            translation: voiceResult.translation,
-            speechDataUri: speechResult.speechDataUri,
-          });
-        }
+        setResult({
+          translation: voiceResult.translation,
+          speechDataUri: speechResult.speechDataUri,
+        });
+
       } catch (e) {
         console.error(e);
         toast({
@@ -219,6 +214,7 @@ export function KhmerEzCard() {
         <CardContent className="space-y-4">
           <div className="relative">
             <Textarea
+              id="originalText"
               placeholder={`Type in ${langNames[sourceLanguage]}...`}
               className="pr-24 min-h-[120px] text-base focus-visible:ring-primary/80"
               value={inputText}
@@ -292,7 +288,7 @@ export function KhmerEzCard() {
                 <div>
                   <h3 className="text-sm font-semibold text-muted-foreground mb-1">Translation</h3>
                   <div className="flex items-start justify-between gap-4">
-                    <p className="text-lg font-semibold text-foreground flex-1 pt-1">
+                    <p className="text-lg font-semibold text-foreground flex-1 pt-1" id="translatedText">
                       {result.translation}
                     </p>
                     <div className="flex items-center gap-2">
@@ -323,5 +319,7 @@ export function KhmerEzCard() {
     </TooltipProvider>
   );
 }
+
+    
 
     
