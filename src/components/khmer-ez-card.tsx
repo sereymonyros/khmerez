@@ -56,6 +56,53 @@ export function KhmerEzCard() {
     setInputText("");
     setResult(null);
   };
+  
+  const showTranslationToast = (translationResult: TranslationResult) => {
+    const handlePlayAudio = (e?: React.MouseEvent) => {
+      e?.stopPropagation();
+      if (!translationResult?.speechDataUri || isSpeaking) return;
+  
+      if (audioPlayerRef.current) {
+        audioPlayerRef.current.pause();
+      }
+      const audio = new Audio(translationResult.speechDataUri);
+      audioPlayerRef.current = audio;
+  
+      audio.onplay = () => setIsSpeaking(true);
+      audio.onended = () => setIsSpeaking(false);
+      audio.onerror = () => {
+        setIsSpeaking(false);
+        toast({ variant: "destructive", title: "Could not play audio." });
+      };
+  
+      audio.play();
+    };
+
+    toast({
+      description: (
+        <div className="flex items-start justify-between gap-4">
+          <p className="text-base font-semibold text-foreground flex-1 pt-1 break-words">
+            {translationResult.translation}
+          </p>
+          {translationResult.speechDataUri && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handlePlayAudio}
+                disabled={isSpeaking}
+                aria-label="Play translated text"
+                className={cn("shrink-0", isSpeaking && "text-primary")}
+              >
+                <Volume2 className="w-5 h-5" />
+              </Button>
+            </div>
+          )}
+        </div>
+      ),
+      duration: 10000,
+    });
+  };
 
   const processStream = (
     action: (input: any) => Promise<any>,
@@ -86,16 +133,19 @@ export function KhmerEzCard() {
       translateAndSynthesizeText,
       { text: inputText, sourceLanguage },
       (output) => {
-        setResult({
-          translation: output.translatedText,
-          speechDataUri: output.speechDataUri,
-        });
+        const newResult = {
+            translation: output.translatedText,
+            speechDataUri: output.speechDataUri,
+        };
+        setResult(newResult);
+        showTranslationToast(newResult);
       }
     );
   };
 
   const handleVoiceTranslate = (voiceMemoDataUri: string) => {
     setResult(null);
+    setInputText("");
     startTransition(async () => {
       try {
         const voiceResult = await transcribeAndTranslateVoiceMemo({
@@ -114,26 +164,31 @@ export function KhmerEzCard() {
             translatedText: voiceResult.translation,
           });
 
-          setResult({
+          const newResult = {
             transcription: voiceResult.transcription,
             translation: voiceResult.translation,
             speechDataUri: speechResult?.speechDataUri,
-          });
+          };
+
+          setResult(newResult);
+          showTranslationToast(newResult);
 
         } catch (e) {
             console.error("Speech synthesis failed, but translation succeeded:", e);
-            setResult({
-              transcription: voiceResult.transcription,
-              translation: voiceResult.translation,
-            });
+            const newResult = {
+                transcription: voiceResult.transcription,
+                translation: voiceResult.translation,
+            };
+            setResult(newResult);
+            showTranslationToast(newResult);
         }
   
       } catch (e) {
         console.error(e);
         toast({
           variant: "destructive",
-          title: "An error occurred during voice translation.",
-          description: "An error occured in server component render.",
+          title: "An error occurred during voice translation",
+          description: e instanceof Error ? e.message : "Please try again.",
         });
         setResult(null);
       }
@@ -179,26 +234,6 @@ export function KhmerEzCard() {
     setIsRecording(false);
   };
 
-  const handlePlayAudio = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent tooltip from closing
-    if (!result?.speechDataUri || isSpeaking) return;
-
-    if (audioPlayerRef.current) {
-      audioPlayerRef.current.pause();
-    }
-    const audio = new Audio(result.speechDataUri);
-    audioPlayerRef.current = audio;
-
-    audio.onplay = () => setIsSpeaking(true);
-    audio.onended = () => setIsSpeaking(false);
-    audio.onerror = () => {
-      setIsSpeaking(false);
-      toast({ variant: "destructive", title: "Could not play audio." });
-    };
-
-    audio.play();
-  };
-
   return (
     <TooltipProvider>      
       <Card className="w-full max-w-2xl mt-8 shadow-2xl shadow-primary/10">
@@ -238,40 +273,14 @@ export function KhmerEzCard() {
             />
           </div>
           <div className="flex gap-2">
-             <Tooltip open={!!(result && !isPending)}>
-              <TooltipTrigger asChild>
-                <Button
-                  className="flex-1"
-                  onClick={handleTextTranslate}
-                  disabled={!inputText.trim() || isPending}
-                >
-                  <Globe className="w-5 h-5 mr-2" />
-                  Translate
-                </Button>
-              </TooltipTrigger>
-              {result && !isPending && (
-                <TooltipContent side="bottom" className="w-full max-w-xs sm:max-w-sm md:max-w-md p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <p className="text-base font-semibold text-foreground flex-1 pt-1 break-words">
-                      {result.translation}
-                    </p>
-                    <div className="flex items-center gap-2">
-                       <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={handlePlayAudio}
-                          disabled={!result.speechDataUri || isSpeaking}
-                          aria-label="Play translated text"
-                          className={cn("shrink-0", isSpeaking && "text-primary")}
-                          id="speakingButton"
-                        >
-                          <Volume2 className="w-5 h-5" />
-                        </Button>
-                    </div>
-                  </div>
-                </TooltipContent>
-              )}
-            </Tooltip>
+            <Button
+              className="flex-1"
+              onClick={handleTextTranslate}
+              disabled={!inputText.trim() || isPending}
+            >
+              <Globe className="w-5 h-5 mr-2" />
+              Translate
+            </Button>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -320,5 +329,3 @@ export function KhmerEzCard() {
     </TooltipProvider>
   );
 }
-
-    
