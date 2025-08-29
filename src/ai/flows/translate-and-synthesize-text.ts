@@ -85,23 +85,17 @@ const translateAndSynthesizeTextFlow = ai.defineFlow(
     let speechDataUri = '';
 
     if (translatedText) {
-      try {
-        const {media} = await ai.generate({
-          model: 'googleai/gemini-2.5-flash-preview-tts',
-          prompt: translatedText,
-        });
+      const {media} = await ai.generate({
+        model: 'googleai/gemini-2.5-flash-preview-tts',
+        prompt: translatedText,
+      });
 
-        if (media) {
-          const audioBuffer = Buffer.from(
-            media.url.substring(media.url.indexOf(',') + 1),
-            'base64'
-          );
-          speechDataUri = 'data:audio/wav;base64,' + (await toWav(audioBuffer));
-        }
-      } catch (e) {
-        console.error("Text-to-speech generation failed. This might be due to API quota limits.", e);
-        // Fail gracefully by returning an empty speechDataUri
-        speechDataUri = '';
+      if (media) {
+        const audioBuffer = Buffer.from(
+          media.url.substring(media.url.indexOf(',') + 1),
+          'base64'
+        );
+        speechDataUri = 'data:audio/wav;base64,' + (await toWav(audioBuffer));
       }
     }
 
