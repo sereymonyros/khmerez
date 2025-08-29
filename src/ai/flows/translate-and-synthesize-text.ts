@@ -122,10 +122,13 @@ const translateAndSynthesizeTextFlow = ai.defineFlow(
       }
     }
 
+    // When pre-translated text is provided, the target language is the *source* language of the input schema.
+    const finalTargetLanguage = input.translatedText ? input.sourceLanguage : targetLanguage;
+
     return {
       translatedText,
       speechDataUri,
-      targetLanguage: targetLanguage as 'en' | 'km',
+      targetLanguage: finalTargetLanguage,
     };
   }
 );
