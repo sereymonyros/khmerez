@@ -108,33 +108,33 @@ export function KhmerEzCard() {
   
         setInputText(voiceResult.transcription);
         
-        // Use a temporary variable to hold the full result initially
-        let fullResult: TranslationResult = {
-          transcription: voiceResult.transcription,
-          translation: voiceResult.translation,
-          speechDataUri: ''
-        };
-  
         // Immediately set the state with the transcription and translation
-        setResult(fullResult);
+        setResult({
+            transcription: voiceResult.transcription,
+            translation: voiceResult.translation,
+        });
         
-        // Now, try to get the speech synthesis
-        let speechResult;
+        // Now, get the speech synthesis
         try {
-          // Pass the already-translated text to be synthesized
-          speechResult = await translateAndSynthesizeText({
+          const speechResult = await translateAndSynthesizeText({
             sourceLanguage: targetLanguage, // The language of the translated text for synthesis
             translatedText: voiceResult.translation,
           });
 
           // Update the result in state with the new speech URI
           setResult({
-            ...fullResult,
+            transcription: voiceResult.transcription,
+            translation: voiceResult.translation,
             speechDataUri: speechResult?.speechDataUri,
           });
 
         } catch (e) {
             console.error("Speech synthesis failed, but translation succeeded:", e);
+            // Even if speech synthesis fails, we have the translation
+            setResult({
+              transcription: voiceResult.transcription,
+              translation: voiceResult.translation,
+            });
         }
   
       } catch (e) {
@@ -142,7 +142,7 @@ export function KhmerEzCard() {
         toast({
           variant: "destructive",
           title: "An error occurred during voice translation.",
-          description: e instanceof Error ? e.message : "Please try again.",
+          description: "An error occured in server component render.",
         });
         setResult(null);
       }
@@ -257,7 +257,6 @@ export function KhmerEzCard() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  size="icon"
                   variant={isRecording ? 'destructive' : 'outline'}
                   onMouseDown={startRecording}
                   onMouseUp={stopRecording}
