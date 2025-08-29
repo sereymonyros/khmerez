@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useTransition } from "react";
-import { Languages, Mic, Send, Volume2 } from "lucide-react";
+import { Languages, Mic, Globe, Volume2 } from "lucide-react";
 import { transcribeAndTranslateVoiceMemo } from "@/ai/flows/transcribe-and-translate-voice-memo";
 import { translateAndSynthesizeText } from "@/ai/flows/translate-and-synthesize-text";
 import { useToast } from "@/hooks/use-toast";
@@ -208,7 +208,7 @@ export function KhmerEzCard() {
   };
 
   return (
-    <TooltipProvider>
+    <TooltipProvider>      
       <Card className="w-full max-w-2xl mt-8 shadow-2xl shadow-primary/10">
         <CardHeader className="text-center">
           <CardTitle className="relative flex items-center justify-center gap-4 text-2xl font-headline">
@@ -233,7 +233,7 @@ export function KhmerEzCard() {
           <div className="relative">
             <Textarea
               id="originalText"
-              placeholder={`Type in ${langNames[sourceLanguage]}...`}
+              placeholder={`Type in English or Khmer...`}
               className="min-h-[120px] text-base focus-visible:ring-primary/80"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
@@ -251,7 +251,7 @@ export function KhmerEzCard() {
               onClick={handleTextTranslate}
               disabled={!inputText.trim() || isPending}
             >
-              <Send className="w-5 h-5 mr-2" />
+              <Globe className="w-5 h-5 mr-2" />
               Translate
             </Button>
             <Tooltip>
