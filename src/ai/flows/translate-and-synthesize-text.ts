@@ -32,7 +32,11 @@ export async function translateAndSynthesizeText(
 
 const translateAndSynthesizeTextPrompt = ai.definePrompt({
   name: 'translateAndSynthesizeTextPrompt',
-  input: {schema: TranslateAndSynthesizeTextInputSchema},
+  input: {schema: z.object({
+    text: z.string(),
+    sourceLanguage: z.enum(['en', 'km']),
+    targetLanguage: z.enum(['en', 'km']),
+  })},
   output: {schema: z.object({translatedText: z.string()})},
   prompt: `Translate the following text from {{sourceLanguage}} to {{targetLanguage}}:\n\n{{text}}`,
 });
@@ -81,20 +85,23 @@ const translateAndSynthesizeTextFlow = ai.defineFlow(
     let speechDataUri = '';
 
     if (translatedText) {
-      const {media} = await ai.generate({
-        model: 'googleai/gemini-2.5-flash-preview-tts',
-        config: {
-          responseModalities: ['AUDIO'],
-        },
-        prompt: translatedText,
-      });
+      try {
+        const {media} = await ai.generate({
+          model: 'googleai/gemini-2.5-flash-preview-tts',
+          prompt: translatedText,
+        });
 
-      if (media) {
-        const audioBuffer = Buffer.from(
-          media.url.substring(media.url.indexOf(',') + 1),
-          'base64'
-        );
-        speechDataUri = 'data:audio/wav;base64,' + (await toWav(audioBuffer));
+        if (media) {
+          const audioBuffer = Buffer.from(
+            media.url.substring(media.url.indexOf(',') + 1),
+            'base64'
+          );
+          speechDataUri = 'data:audio/wav;base64,' + (await toWav(audioBuffer));
+        }
+      } catch (e) {
+        console.error("Text-to-speech generation failed. This might be due to API quota limits.", e);
+        // Fail gracefully by returning an empty speechDataUri
+        speechDataUri = '';
       }
     }
 
