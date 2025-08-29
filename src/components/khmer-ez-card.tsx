@@ -200,7 +200,7 @@ export function KhmerEzCard() {
   return (
     <TooltipProvider>
       {result.type && (
-        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 z-50">
+        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 z-50 mb-4">
           {result.type === 'loading' && (
               <Alert>
                 <div className="space-y-2">
@@ -218,7 +218,7 @@ export function KhmerEzCard() {
           )}
           {result.type === 'success' && result.data && (
               <Alert variant="success" className="flex items-center justify-between">
-                  <AlertDescription className="text-base text-current focus-visible:ring-primary/80">
+                  <AlertDescription className="text-base text-black focus-visible:ring-primary/80">
                     {result.data.translation}
                   </AlertDescription>
                   {result.data.speechDataUri && (
@@ -229,7 +229,7 @@ export function KhmerEzCard() {
                       disabled={isSpeaking}
                       aria-label="Play translated text"
                     >
-                      <Volume2 className={cn("w-5 h-5", isSpeaking ? "text-primary" : "text-current")} />
+                      <Volume2 className={cn("w-5 h-5", isSpeaking ? "text-primary" : "text-black")} />
                     </Button>
                   )}
               </Alert>
