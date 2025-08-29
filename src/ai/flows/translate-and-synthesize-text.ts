@@ -77,33 +77,35 @@ const translateAndSynthesizeTextFlow = ai.defineFlow(
       targetLanguage,
     });
 
-    const {media} = await ai.generate({
-      model: 'googleai/gemini-2.5-flash-preview-tts',
-      config: {
-        responseModalities: ['AUDIO'],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: {voiceName: 'Algenib'},
+    const translatedText = output?.translatedText || '';
+    let speechDataUri = '';
+
+    if (translatedText) {
+      const {media} = await ai.generate({
+        model: 'googleai/gemini-2.5-flash-preview-tts',
+        config: {
+          responseModalities: ['AUDIO'],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {voiceName: 'Algenib'},
+            },
           },
         },
-      },
-      prompt: output!.translatedText,
-    });
+        prompt: translatedText,
+      });
 
-    if (!media) {
-      throw new Error('no media returned');
+      if (media) {
+        const audioBuffer = Buffer.from(
+          media.url.substring(media.url.indexOf(',') + 1),
+          'base64'
+        );
+        speechDataUri = 'data:audio/wav;base64,' + (await toWav(audioBuffer));
+      }
     }
 
-    const audioBuffer = Buffer.from(
-      media.url.substring(media.url.indexOf(',') + 1),
-      'base64'
-    );
-
-    const speechDataUri = 'data:audio/wav;base64,' + (await toWav(audioBuffer));
-
     return {
-      translatedText: output!.translatedText,
-      speechDataUri: speechDataUri,
+      translatedText,
+      speechDataUri,
       targetLanguage: targetLanguage as 'en' | 'km',
     };
   }
