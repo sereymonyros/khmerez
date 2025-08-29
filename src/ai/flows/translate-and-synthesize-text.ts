@@ -13,7 +13,7 @@ import {z} from 'genkit';
 import wav from 'wav';
 
 const TranslateAndSynthesizeTextInputSchema = z.object({
-  text: z.string().describe('The text to translate and synthesize.'),
+  text: z.string().optional().describe('The text to translate and synthesize.'),
   sourceLanguage: z.enum(['en', 'km']).describe('The source language of the text.'),
   translatedText: z.string().optional().describe('An optional pre-translated text to synthesize directly.'),
 });
@@ -81,14 +81,14 @@ const translateAndSynthesizeTextFlow = ai.defineFlow(
 
     let translatedText = input.translatedText || '';
 
-    if (!input.translatedText && input.text.trim()) {
+    if (!input.translatedText && input.text) {
        const {output} = await translateAndSynthesizeTextPrompt({
         text: input.text,
         sourceLanguage: input.sourceLanguage,
         targetLanguage,
       });
       translatedText = output?.translatedText || '';
-    } else if (!translatedText && !input.text.trim()) {
+    } else if (!translatedText && !input.text) {
         return {
             translatedText: '',
             speechDataUri: '',

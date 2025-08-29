@@ -109,13 +109,12 @@ export function KhmerEzCard() {
         setInputText(voiceResult.transcription);
         
         const speechResult = await translateAndSynthesizeText({
-          text: '', // Not needed as we provide translatedText
-          sourceLanguage: targetLanguage, 
+          sourceLanguage: targetLanguage, // Language of the translated text
           translatedText: voiceResult.translation,
         });
 
         if (!speechResult) throw new Error("Failed to synthesize speech for the translation.");
-
+        
         setResult({
           transcription: voiceResult.transcription,
           translation: voiceResult.translation,
@@ -282,12 +281,6 @@ export function KhmerEzCard() {
           {result && !isPending && (
             <Card className="bg-accent/10 border-accent/50">
               <CardContent className="p-4 space-y-4">
-                {result.transcription && (
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-1">Transcription</h3>
-                    <p className="text-muted-foreground italic">"{result.transcription}"</p>
-                  </div>
-                )}
                 <div>
                   <h3 className="text-sm font-semibold text-muted-foreground mb-1">Translation</h3>
                   <div className="flex items-start justify-between gap-4">
