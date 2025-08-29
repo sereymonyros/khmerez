@@ -5,13 +5,13 @@ import { useState, useRef, useEffect, useTransition } from "react";
 import { Languages, Mic, Globe, Volume2 } from "lucide-react";
 import { transcribeAndTranslateVoiceMemo } from "@/ai/flows/transcribe-and-translate-voice-memo";
 import { translateAndSynthesizeText } from "@/ai/flows/translate-and-synthesize-text";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type LanguagePair = "en-km" | "km-en";
 type TranslationResult = {
@@ -19,10 +19,16 @@ type TranslationResult = {
   translation: string;
   speechDataUri?: string;
 };
+type ResultState = {
+    type: "loading" | "success" | "error" | null;
+    message?: string;
+    data?: TranslationResult | null;
+};
 
 export function KhmerEzCard() {
   const [languagePair, setLanguagePair] = useState<LanguagePair>("en-km");
   const [inputText, setInputText] = useState("");
+  const [result, setResult] = useState<ResultState>({ type: null });
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -30,10 +36,6 @@ export function KhmerEzCard() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
-  const activeToastId = useRef<string | null>(null);
-
-
-  const { toast, dismiss } = useToast();
 
   const sourceLanguage = languagePair.split("-")[0] as "en" | "km";
   const targetLanguage = languagePair.split("-")[1] as "en" | "km";
@@ -51,10 +53,11 @@ export function KhmerEzCard() {
       }
     };
   }, []);
-
+  
   const handleLanguageToggle = () => {
     setLanguagePair(prev => (prev === "en-km" ? "km-en" : "en-km"));
     setInputText("");
+    setResult({ type: null });
   };
   
   const handlePlayAudio = (speechDataUri: string) => {
@@ -70,51 +73,10 @@ export function KhmerEzCard() {
     audio.onended = () => setIsSpeaking(false);
     audio.onerror = () => {
       setIsSpeaking(false);
-      toast({ variant: "destructive", title: "Could not play audio." });
+      setResult({ type: 'error', message: "Could not play audio." });
     };
   
     audio.play();
-  };
-
-  const showTranslationToast = (result: TranslationResult, variant: 'success' | 'destructive' = 'success') => {
-    const { update } = toast({
-      variant,
-      duration: Infinity,
-      description: (
-        <div className="flex items-center gap-4">
-          <span>{result.translation}</span>
-          {result.speechDataUri && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handlePlayAudio(result.speechDataUri!)}
-              disabled={isSpeaking}
-              aria-label="Play translated text"
-              className={cn("text-success-foreground hover:bg-white/20 hover:text-success-foreground", isSpeaking && "text-primary")}
-            >
-              <Volume2 className="w-5 h-5" />
-            </Button>
-          )}
-        </div>
-      ),
-    });
-    activeToastId.current = update.id;
-  };
-  
-  const showLoadingToast = () => {
-    if (activeToastId.current) {
-      dismiss(activeToastId.current);
-    }
-    const { id } = toast({
-      variant: 'success',
-      duration: Infinity,
-      description: (
-        <div className="space-y-2">
-            <Skeleton className="h-5 w-full bg-white/30" />
-        </div>
-      ),
-    });
-    activeToastId.current = id;
   };
 
   const processStream = (
@@ -123,19 +85,15 @@ export function KhmerEzCard() {
     onSuccess: (output: any) => void
   ) => {
     startTransition(async () => {
-      showLoadingToast();
+        setResult({ type: 'loading' });
       try {
         const output = await action(input);
         if (!output) throw new Error("Received an empty response from the AI.");
         onSuccess(output);
       } catch (e) {
-        if (activeToastId.current) dismiss(activeToastId.current);
         console.error(e);
-        toast({
-          variant: "destructive",
-          title: "An error occurred",
-          description: e instanceof Error ? e.message : "Please try again.",
-        });
+        const message = e instanceof Error ? e.message : "Please try again.";
+        setResult({ type: 'error', message });
       }
     });
   };
@@ -147,13 +105,15 @@ export function KhmerEzCard() {
       { text: inputText, sourceLanguage },
       (output) => {
         if (output.translatedText) {
-          const newResult = {
-            translation: output.translatedText,
-            speechDataUri: output.speechDataUri,
-          };
-          showTranslationToast(newResult, 'success');
+          setResult({
+            type: 'success',
+            data: {
+              translation: output.translatedText,
+              speechDataUri: output.speechDataUri,
+            },
+          });
         } else {
-          showTranslationToast({ translation: 'No result found.' }, 'destructive');
+            setResult({ type: 'error', message: 'No result found.' });
         }
       }
     );
@@ -162,7 +122,7 @@ export function KhmerEzCard() {
   const handleVoiceTranslate = (voiceMemoDataUri: string) => {
     setInputText("");
     startTransition(async () => {
-      showLoadingToast();
+      setResult({ type: 'loading' });
       try {
         const voiceResult = await transcribeAndTranslateVoiceMemo({
           voiceMemoDataUri,
@@ -171,7 +131,7 @@ export function KhmerEzCard() {
         });
   
         if (!voiceResult || !voiceResult.translation) {
-            showTranslationToast({ translation: 'No result found.' }, 'destructive');
+            setResult({ type: 'error', message: 'No result found.' });
             return;
         }
   
@@ -182,22 +142,19 @@ export function KhmerEzCard() {
           translatedText: voiceResult.translation,
         });
 
-        const newResult = {
-          transcription: voiceResult.transcription,
-          translation: voiceResult.translation,
-          speechDataUri: speechResult?.speechDataUri,
-        };
-        
-        showTranslationToast(newResult, 'success');
+        setResult({
+            type: 'success',
+            data: {
+                transcription: voiceResult.transcription,
+                translation: voiceResult.translation,
+                speechDataUri: speechResult?.speechDataUri,
+            }
+        });
   
       } catch (e) {
-        if (activeToastId.current) dismiss(activeToastId.current);
         console.error(e);
-        toast({
-          variant: "destructive",
-          title: "An error occurred during voice translation",
-          description: e instanceof Error ? e.message : "Please try again.",
-        });
+        const message = e instanceof Error ? e.message : "Please try again.";
+        setResult({ type: 'error', message: `An error occurred during voice translation: ${message}` });
       }
     });
   };
@@ -208,6 +165,7 @@ export function KhmerEzCard() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setIsRecording(true);
       setInputText("");
+      setResult({ type: null });
       mediaRecorderRef.current = new MediaRecorder(stream);
       mediaRecorderRef.current.ondataavailable = (event) => {
         audioChunksRef.current.push(event.data);
@@ -225,10 +183,9 @@ export function KhmerEzCard() {
       mediaRecorderRef.current.start();
     } catch (error) {
       console.error("Microphone access denied:", error);
-      toast({
-        variant: "destructive",
-        title: "Microphone Access Denied",
-        description: "Please allow microphone access in your browser settings to use this feature.",
+      setResult({
+        type: 'error',
+        message: "Please allow microphone access in your browser settings to use this feature."
       });
       setIsRecording(false);
     }
@@ -269,7 +226,10 @@ export function KhmerEzCard() {
               placeholder={`Type in ${langNames[sourceLanguage]}...`}
               className="min-h-[120px] text-base focus-visible:ring-primary/80"
               value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
+              onChange={(e) => {
+                setInputText(e.target.value);
+                setResult({type: null});
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
                   e.preventDefault();
@@ -315,6 +275,41 @@ export function KhmerEzCard() {
               </TooltipContent>
             </Tooltip>
           </div>
+          {result.type && (
+            <div className="pt-4">
+              {result.type === 'loading' && (
+                  <div className="space-y-2">
+                      <Skeleton className="h-5 w-1/3" />
+                      <Skeleton className="h-5 w-full" />
+                      <Skeleton className="h-5 w-2/3" />
+                  </div>
+              )}
+              {result.type === 'error' && (
+                  <Alert variant="destructive">
+                      <AlertTitle>Error</AlertTitle>
+                      <AlertDescription>{result.message}</AlertDescription>
+                  </Alert>
+              )}
+              {result.type === 'success' && result.data && (
+                  <Alert variant="default" className="flex items-center justify-between">
+                      <AlertDescription className="text-base text-foreground">
+                        {result.data.translation}
+                      </AlertDescription>
+                      {result.data.speechDataUri && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handlePlayAudio(result.data.speechDataUri!)}
+                          disabled={isSpeaking}
+                          aria-label="Play translated text"
+                        >
+                          <Volume2 className={cn("w-5 h-5", isSpeaking && "text-primary")} />
+                        </Button>
+                      )}
+                  </Alert>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>      
     </TooltipProvider>
