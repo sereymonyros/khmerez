@@ -291,8 +291,8 @@ export function KhmerEzCard() {
                   </Alert>
               )}
               {result.type === 'success' && result.data && (
-                  <Alert variant="default" className="flex items-center justify-between">
-                      <AlertDescription className="text-base text-foreground">
+                  <Alert variant="success" className="flex items-center justify-between">
+                      <AlertDescription className="text-base text-current">
                         {result.data.translation}
                       </AlertDescription>
                       {result.data.speechDataUri && (
