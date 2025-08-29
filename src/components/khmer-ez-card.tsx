@@ -108,17 +108,20 @@ export function KhmerEzCard() {
 
         setInputText(voiceResult.transcription);
         
-        const speechResult = await translateAndSynthesizeText({
-          sourceLanguage: targetLanguage, // Language of the translated text
-          translatedText: voiceResult.translation,
-        });
+        let speechResult;
+        try {
+          speechResult = await translateAndSynthesizeText({
+            sourceLanguage: targetLanguage, // Language of the translated text
+            translatedText: voiceResult.translation,
+          });
+        } catch (e) {
+            console.error("Speech synthesis failed, but translation succeeded:", e);
+        }
 
-        if (!speechResult) throw new Error("Failed to synthesize speech for the translation.");
-        
         setResult({
           transcription: voiceResult.transcription,
           translation: voiceResult.translation,
-          speechDataUri: speechResult.speechDataUri,
+          speechDataUri: speechResult?.speechDataUri,
         });
 
       } catch (e) {
@@ -218,7 +221,7 @@ export function KhmerEzCard() {
             <Textarea
               id="originalText"
               placeholder={`Type in ${langNames[sourceLanguage]}...`}
-              className="pr-24 min-h-[120px] text-base focus-visible:ring-primary/80"
+              className="min-h-[120px] text-base focus-visible:ring-primary/80"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => {
@@ -228,38 +231,44 @@ export function KhmerEzCard() {
                 }
               }}
             />
-            <div className="absolute top-3 right-3 flex flex-col space-y-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="icon" onClick={handleTextTranslate} disabled={!inputText.trim() || isPending}>
-                    <Send className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Translate (Enter)</p>
-                </TooltipContent>
-              </Tooltip>
-               <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant={isRecording ? "destructive" : "outline"}
-                    onMouseDown={startRecording}
-                    onMouseUp={stopRecording}
-                    onTouchStart={startRecording}
-                    onTouchEnd={stopRecording}
-                    disabled={isPending}
-                    className={cn(isRecording && "animate-pulse ring-2 ring-destructive ring-offset-2 ring-offset-background")}
-                    id="recordingButton"
-                  >
-                    <Mic className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{isRecording ? "Release to Stop" : "Press and Hold to Record"}</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              className="flex-1"
+              onClick={handleTextTranslate}
+              disabled={!inputText.trim() || isPending}
+            >
+              <Send className="w-5 h-5 mr-2" />
+              Translate
+            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant={isRecording ? 'destructive' : 'outline'}
+                  onMouseDown={startRecording}
+                  onMouseUp={stopRecording}
+                  onTouchStart={startRecording}
+                  onTouchEnd={stopRecording}
+                  disabled={isPending}
+                  className={cn(
+                    'w-14',
+                    isRecording &&
+                      'animate-pulse ring-2 ring-destructive ring-offset-2 ring-offset-background'
+                  )}
+                  id="recordingButton"
+                >
+                  <Mic className="w-5 h-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  {isRecording
+                    ? 'Release to Stop'
+                    : 'Press and Hold to Record'}
+                </p>
+              </TooltipContent>
+            </Tooltip>
           </div>
           
           {isPending && (
