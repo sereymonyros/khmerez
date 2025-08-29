@@ -108,11 +108,12 @@ export function KhmerEzCard() {
 
         setInputText(voiceResult.transcription);
         
-        // The source language for TTS is the *target* of the initial translation.
         const speechResult = await translateAndSynthesizeText({
           text: voiceResult.translation,
           sourceLanguage: targetLanguage, 
         });
+
+        if (!speechResult) throw new Error("Failed to synthesize speech for the translation.");
 
         setResult({
           translation: voiceResult.translation,
@@ -319,7 +320,3 @@ export function KhmerEzCard() {
     </TooltipProvider>
   );
 }
-
-    
-
-    
