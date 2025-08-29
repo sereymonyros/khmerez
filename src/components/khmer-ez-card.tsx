@@ -200,7 +200,7 @@ export function KhmerEzCard() {
   return (
     <TooltipProvider>
       {result.type && (
-        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 z-50">
+        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 z-50 mt-20">
           {result.type === 'loading' && (
               <Alert>
                 <div className="space-y-2">
