@@ -82,7 +82,10 @@ const translateAndSynthesizeTextFlow = ai.defineFlow(
 
     if (translatedText) {
       const {media} = await ai.generate({
-        model: 'googleai/tts-1',
+        model: 'googleai/gemini-2.5-flash-preview-tts',
+        config: {
+          responseModalities: ['AUDIO'],
+        },
         prompt: translatedText,
       });
 
