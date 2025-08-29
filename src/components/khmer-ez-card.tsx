@@ -218,7 +218,7 @@ export function KhmerEzCard() {
           )}
           {result.type === 'success' && result.data && (
               <Alert variant="success" className="flex items-center justify-between">
-                  <AlertDescription className="text-base text-current">
+                  <AlertDescription className="text-base text-current focus-visible:ring-primary/80">
                     {result.data.translation}
                   </AlertDescription>
                   {result.data.speechDataUri && (
@@ -229,7 +229,7 @@ export function KhmerEzCard() {
                       disabled={isSpeaking}
                       aria-label="Play translated text"
                     >
-                      <Volume2 className={cn("w-5 h-5", isSpeaking && "text-primary")} />
+                      <Volume2 className={cn("w-5 h-5", isSpeaking ? "text-primary" : "text-current")} />
                     </Button>
                   )}
               </Alert>
@@ -276,14 +276,21 @@ export function KhmerEzCard() {
             />
           </div>
           <div className="flex gap-2">
-            <Button
-              className="flex-1"
-              onClick={handleTextTranslate}
-              disabled={!inputText.trim() || isPending}
-            >
-              <Globe className="w-5 h-5 mr-2" />
-              Translate
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  className="flex-1"
+                  onClick={handleTextTranslate}
+                  disabled={!inputText.trim() || isPending}
+                  aria-label="Translate text"
+                >
+                  <Globe className="w-5 h-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Translate</p>
+              </TooltipContent>
+            </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
