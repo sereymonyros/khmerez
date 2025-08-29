@@ -202,7 +202,7 @@ export function KhmerEzCard() {
       {result.type && (
         <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 z-50 mb-4">
           {result.type === 'loading' && (
-              <Alert>
+              <Alert variant="success">
                 <div className="space-y-2">
                     <Skeleton className="h-5 w-1/3" />
                     <Skeleton className="h-5 w-full" />
