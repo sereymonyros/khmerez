@@ -124,7 +124,7 @@ export function KhmerEzCard() {
         setInputText(voiceResult.transcription);
         
         const speechResult = await translateAndSynthesizeText({
-          sourceLanguage: targetLanguage,
+          sourceLanguage: sourceLanguage, // This was the bug, it should be the original source language
           translatedText: voiceResult.translation,
         });
 
@@ -210,7 +210,7 @@ export function KhmerEzCard() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handlePlayAudio(result.data.speechDataUri!)}
+                      onClick={() => handlePlayAudio(result?.data?.speechDataUri!)}
                       disabled={isSpeaking}
                       aria-label="Play translated text"
                     >
